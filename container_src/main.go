@@ -2,8 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,10 +11,9 @@ import (
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	message := os.Getenv("MESSAGE")
-	instanceId := os.Getenv("CLOUDFLARE_DURABLE_OBJECT_ID")
-	fmt.Fprintf(w, "Hi, I'm a container and this is my message: \"%s\", my instance ID is: %s", message, instanceId)
-
+	instanceID := os.Getenv("CLOUDFLARE_DURABLE_OBJECT_ID")
+	r.Body
+	slog.Info("Instance Id: %s Initialized", instanceID)
 }
 
 func errorHandler(w http.ResponseWriter, r *http.Request) {
@@ -23,14 +21,11 @@ func errorHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// Listen for SIGINT and SIGTERM
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	router := http.NewServeMux()
 	router.HandleFunc("/", handler)
-	router.HandleFunc("/container", handler)
-	router.HandleFunc("/error", errorHandler)
 
 	server := &http.Server{
 		Addr:    ":8080",
@@ -38,24 +33,22 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("Server listening on %s\n", server.Addr)
+		slog.Info("Server listening on %s\n", server.Addr)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal(err)
+			slog.Error(err.Error())
 		}
 	}()
 
-	// Wait to receive a signal
 	sig := <-stop
 
-	log.Printf("Received signal (%s), shutting down server...", sig)
+	slog.Info("Received signal (%s), shutting down server...", sig)
 
-	// Give the server 5 seconds to shutdown
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
 	}
 
-	log.Println("Server shutdown successfully")
+	slog.Info("Server shutdown successfully")
 }
