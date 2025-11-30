@@ -23,6 +23,7 @@ func main() {
 	c := dig.New()
 	c.Provide(services.NewRSSParser)
 	c.Provide(repository.NewMongoDBRepository)
+	c.Provide(services.NewRSSService)
 	handler := NewHandler(c)
 	router := http.NewServeMux()
 	router.HandleFunc("/", handler.mainHandler)
