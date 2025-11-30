@@ -5,7 +5,7 @@ WORKDIR /app
 COPY container_src/go.mod ./
 RUN go mod download;
 
-COPY container_src/*.go ./
+COPY container_src/* ./
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /server
 
