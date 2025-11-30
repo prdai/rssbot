@@ -3,8 +3,9 @@ package services
 
 import (
 	"fmt"
+	"log/slog"
 
-	"server/repository"
+	"github.com/prdai/rssbot/repository"
 
 	"github.com/mmcdole/gofeed"
 	"go.uber.org/dig"
@@ -13,8 +14,8 @@ import (
 type RSSServiceParams struct {
 	dig.In
 
-	dbRepository *repository.Repository
-	rssParser    *gofeed.Parser
+	dbRepository repository.Repository
+	rssParser    gofeed.Parser
 }
 
 type RSSService interface {
@@ -23,12 +24,13 @@ type RSSService interface {
 }
 
 type rssService struct {
-	dbRepository *repository.Repository
-	rssParser    *gofeed.Parser
+	dbRepository repository.Repository
+	rssParser    gofeed.Parser
 }
 
 func (r *rssService) SyncRSSFeeds(rssFeeds []string) []string {
 	for _, rssFeed := range rssFeeds {
+		slog.Info(rssFeed)
 		go r.getRSSFeed(rssFeed)
 	}
 	return make([]string, 0)
@@ -47,6 +49,6 @@ func NewRSSService(params RSSServiceParams) RSSService {
 	return &rssService{dbRepository: params.dbRepository, rssParser: params.rssParser}
 }
 
-func NewRSSParser() *gofeed.Parser {
-	return gofeed.NewParser()
+func NewRSSParser() gofeed.Parser {
+	return *gofeed.NewParser()
 }

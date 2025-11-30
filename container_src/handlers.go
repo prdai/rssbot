@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"server/services"
+	"github.com/prdai/rssbot/services"
 
 	"go.uber.org/dig"
 )
@@ -33,7 +33,8 @@ func (h *handler) mainHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	slog.Info(fmt.Sprintf("Received request: %s", RSSFeeds))
-	go h.container.Invoke(func(s services.RSSService) {
+	h.container.Invoke(func(s services.RSSService) {
+		slog.Info("Invoking Sync RSS Feeds")
 		s.SyncRSSFeeds(RSSFeeds.Feeds)
 	})
 	w.WriteHeader(http.StatusAccepted)

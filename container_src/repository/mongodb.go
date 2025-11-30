@@ -7,6 +7,10 @@ type mongoDBRepository struct {
 	mongodbURI string
 }
 
-func NewMongoDBRepository() *mongoDBRepository {
-	return &mongoDBRepository{mongodbURI: os.Getenv("MONGODB_URI")}
+func NewMongoDBRepository() mongoDBRepository {
+	return mongoDBRepository{mongodbURI: os.Getenv("MONGODB_URI")}
+}
+
+func (m *mongoDBRepository) getName() string {
+	return "mongodb"
 }

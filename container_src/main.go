@@ -10,8 +10,8 @@ import (
 	"syscall"
 	"time"
 
-	"server/repository"
-	"server/services"
+	"github.com/prdai/rssbot/repository"
+	"github.com/prdai/rssbot/services"
 
 	"go.uber.org/dig"
 )
