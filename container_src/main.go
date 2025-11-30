@@ -12,7 +12,6 @@ import (
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	instanceID := os.Getenv("CLOUDFLARE_DURABLE_OBJECT_ID")
-	r.Body
 	slog.Info("Instance Id: %s Initialized", instanceID)
 }
 
