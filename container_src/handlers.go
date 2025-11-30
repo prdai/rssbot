@@ -33,9 +33,10 @@ func (h *handler) mainHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	slog.Info(fmt.Sprintf("Received request: %s", RSSFeeds))
-	h.container.Invoke(func(s services.RSSService) {
+	h.container.Invoke(func(s services.RSSService) error {
 		slog.Info("Invoking Sync RSS Feeds")
 		s.SyncRSSFeeds(RSSFeeds.Feeds)
+		return nil
 	})
 	w.WriteHeader(http.StatusAccepted)
 }

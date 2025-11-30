@@ -46,9 +46,11 @@ func (r *rssService) getRSSFeed(url string) any {
 }
 
 func NewRSSService(params RSSServiceParams) RSSService {
+	slog.Info("Creating New RSS Service")
 	return &rssService{dbRepository: params.dbRepository, rssParser: params.rssParser}
 }
 
 func NewRSSParser() gofeed.Parser {
+	slog.Info("Creating new RSS Parser")
 	return *gofeed.NewParser()
 }
