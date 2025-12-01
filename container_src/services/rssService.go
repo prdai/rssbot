@@ -15,7 +15,7 @@ type RSSServiceParams struct {
 	dig.In
 
 	dbRepository repository.Repository
-	rssParser    gofeed.Parser
+	rssParser    *gofeed.Parser
 }
 
 type RSSService interface {
@@ -25,7 +25,7 @@ type RSSService interface {
 
 type rssService struct {
 	dbRepository repository.Repository
-	rssParser    gofeed.Parser
+	rssParser    *gofeed.Parser
 }
 
 func (r *rssService) SyncRSSFeeds(rssFeeds []string) []string {
@@ -45,12 +45,12 @@ func (r *rssService) getRSSFeed(url string) any {
 	return "test"
 }
 
-func NewRSSService(params RSSServiceParams) RSSService {
+func NewRSSService(p RSSServiceParams) rssService {
 	slog.Info("Creating New RSS Service")
-	return &rssService{dbRepository: params.dbRepository, rssParser: params.rssParser}
+	return rssService{dbRepository: p.dbRepository, rssParser: p.rssParser}
 }
 
-func NewRSSParser() gofeed.Parser {
+func NewRSSParser() *gofeed.Parser {
 	slog.Info("Creating new RSS Parser")
-	return *gofeed.NewParser()
+	return gofeed.NewParser()
 }

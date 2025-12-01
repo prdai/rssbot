@@ -15,6 +15,6 @@ func NewMongoDBRepository() mongoDBRepository {
 	return mongoDBRepository{mongodbURI: os.Getenv("MONGODB_URI")}
 }
 
-func (m *mongoDBRepository) getName() string {
+func (m mongoDBRepository) getName() string {
 	return "mongodb"
 }

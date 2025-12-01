@@ -19,11 +19,15 @@ import (
 func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
-
+	must := func(err error) {
+		if err != nil {
+			panic(err)
+		}
+	}
 	c := dig.New()
-	c.Provide(services.NewRSSParser)
-	c.Provide(repository.NewMongoDBRepository)
-	c.Provide(services.NewRSSService)
+	must(c.Provide(services.NewRSSParser))
+	must(c.Provide(repository.NewMongoDBRepository, dig.As(new(repository.Repository))))
+	must(c.Provide(services.NewRSSService, dig.As(new(services.RSSService))))
 	handler := NewHandler(c)
 	router := http.NewServeMux()
 	router.HandleFunc("/", handler.mainHandler)
