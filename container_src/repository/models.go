@@ -2,5 +2,9 @@
 package repository
 
 type Repository interface {
-	getName() string
+	getFeed(feedUrl string)
+}
+
+type Feed struct {
+	_id string
 }

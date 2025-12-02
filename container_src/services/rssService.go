@@ -2,10 +2,12 @@
 package services
 
 import (
-	"fmt"
+	"context"
 	"log/slog"
+	"sync"
 
 	"github.com/prdai/rssbot/repository"
+	"github.com/prdai/rssbot/utils"
 
 	"github.com/mmcdole/gofeed"
 	"go.uber.org/dig"
@@ -19,8 +21,9 @@ type RSSServiceParams struct {
 }
 
 type RSSService interface {
-	SyncRSSFeeds(rssFeeds []string) []string
+	SyncRSSFeeds(rssFeeds []string, ctx context.Context) []string
 	getRSSFeed(url string) any
+	syncRSSFeed(url string)
 }
 
 type rssService struct {
@@ -28,29 +31,42 @@ type rssService struct {
 	rssParser    *gofeed.Parser
 }
 
-func (r *rssService) SyncRSSFeeds(rssFeeds []string) []string {
+func (r *rssService) SyncRSSFeeds(rssFeeds []string, ctx context.Context) []string {
 	for _, rssFeed := range rssFeeds {
 		slog.Info(rssFeed)
-		go r.getRSSFeed(rssFeed)
+		go r.syncRSSFeed(rssFeed)
 	}
 	return make([]string, 0)
 }
 
-func (r *rssService) getRSSFeed(url string) any {
-	feed, err := r.rssParser.ParseURL(url)
-	if err != nil {
-		return nil
-	}
-	fmt.Println(feed)
-	return "test"
+func (r *rssService) syncRSSFeed(url string) {
+	feedId := utils.ConvertStringToHash(url)
+	feedCollector := make(chan *gofeed.Feed, 1)
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go r.getRSSFeed(url, feedCollector, &wg)
 }
 
+func (r *rssService) getRSSFeed(url string, feedCollector chan *gofeed.Feed, wg *sync.WaitGroup) {
+	defer wg.Done()
+	feed, err := r.rssParser.ParseURL(url)
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
+	feedCollector <- feed
+}
+
+// hash, err := hashstructure.Hash(*feed, hashstructure.FormatV2, nil)
+// if err != nil {
+// 	slog.Error(err.Error())
+// 	return nil
+// }
+
 func NewRSSService(p RSSServiceParams) *rssService {
-	slog.Info("Creating New RSS Service")
 	return &rssService{dbRepository: p.DBRepository, rssParser: p.RSSParser}
 }
 
 func NewRSSParser() *gofeed.Parser {
-	slog.Info("Creating new RSS Parser")
 	return gofeed.NewParser()
 }

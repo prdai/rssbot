@@ -25,17 +25,8 @@
   },
   "migrations": [
     {
-      "new_sqlite_classes": ["MyContainer"],
+      "new_sqlite_classes": ["WorkerContainer"],
       "tag": "v1",
-    },
-    {
-      "tag": "v3",
-      "renamed_classes": [
-        {
-          "from": "MyContainer",
-          "to": "WorkerContainer",
-        },
-      ],
     },
   ],
   "upload_source_maps": true,
