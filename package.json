@@ -10,12 +10,12 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^6.2.0",
+    "@antfu/eslint-config": "^6.4.1",
     "@commitlint/config-conventional": "^20.0.0",
     "@types/node": "^24.10.1",
     "husky": "^9.1.7",
     "typescript": "5.8.3",
-    "wrangler": "^4.51.0"
+    "wrangler": "^4.52.1"
   },
   "dependencies": {
     "@cloudflare/containers": "^0.0.28",

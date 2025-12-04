@@ -3,6 +3,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"sync"
 
@@ -10,49 +11,72 @@ import (
 	"github.com/prdai/rssbot/utils"
 
 	"github.com/mmcdole/gofeed"
-	"go.uber.org/dig"
 )
 
-type RSSServiceParams struct {
-	dig.In
-
-	DBRepository repository.Repository
-	RSSParser    *gofeed.Parser
-}
-
-type RSSService interface {
-	SyncRSSFeeds(rssFeeds []string, ctx context.Context) []string
-	getRSSFeed(url string) any
-	syncRSSFeed(url string)
-}
-
 type rssService struct {
-	dbRepository repository.Repository
-	rssParser    *gofeed.Parser
+	dbRepository         repository.Repository
+	rssParser            *gofeed.Parser
+	untrackedFeedMaxItem int `env:"UNTRACKED_FEED_MAX_ITEMS"`
 }
 
 func (r *rssService) SyncRSSFeeds(rssFeeds []string, ctx context.Context) []string {
+	rssFeedsNewItemsChan := make(chan *NewItems, len(rssFeeds))
 	for _, rssFeed := range rssFeeds {
 		slog.Info(rssFeed)
-		go r.syncRSSFeed(rssFeed)
+		go r.syncRSSFeed(rssFeed, rssFeedsNewItemsChan)
 	}
+	rssFeedItems := <-rssFeedsNewItemsChan
+	fmt.Printf("%+v\n", rssFeedItems)
 	return make([]string, 0)
 }
 
-func (r *rssService) syncRSSFeed(url string) {
+func (r *rssService) syncRSSFeed(url string, c chan *NewItems) {
 	feedHash := utils.ConvertStringToHash(url)
 	feedFetcherChan := make(chan *gofeed.Feed, 1)
 	feedRetrivalChan := make(chan *repository.Feed, 1)
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go r.getRSSFeed(url, feedFetcherChan, &wg)
-	go r.dbRepository.GetFeed(feedHash, feedRetrivalChan)
+	go r.dbRepository.GetFeed(feedHash, feedRetrivalChan, &wg)
 	wg.Wait()
 	fetchedFeed := <-feedFetcherChan
 	retrivedFeed := <-feedRetrivalChan
-	if fetchedFeed == nil || retrivedFeed == nil {
+	if fetchedFeed == nil {
 		return
 	}
+	newItemsChan := make(chan *NewItems, len(fetchedFeed.Items))
+	wg.Add(2)
+	if retrivedFeed == nil {
+		retrivedFeed = &repository.Feed{}
+		go r.dbRepository.CreateFeed(feedHash, &wg)
+	}
+	go r.captureNewItems(fetchedFeed.Items, &wg, retrivedFeed.LastItemHash, newItemsChan)
+	wg.Wait()
+	newItems := <-newItemsChan
+	c <- newItems
+}
+
+func (r *rssService) captureNewItems(items []*gofeed.Item, wg *sync.WaitGroup, lastItemHash string, newItemsChan chan *NewItems) {
+	defer wg.Done()
+	var firstHashString string
+	var newItems []*gofeed.Item
+	for i, item := range items {
+		hashString, error := utils.ConvertObjectToHash(item)
+		if error != nil {
+			continue
+		}
+		if i == 0 {
+			firstHashString = hashString
+		}
+		if lastItemHash != "" && lastItemHash == hashString {
+			break
+		}
+		newItems = append(newItems, item)
+		if lastItemHash == "" && len(newItems) >= r.untrackedFeedMaxItem {
+			break
+		}
+	}
+	newItemsChan <- &NewItems{Items: newItems, LatestItemHash: firstHashString}
 }
 
 func (r *rssService) getRSSFeed(url string, feedCollector chan *gofeed.Feed, wg *sync.WaitGroup) {
@@ -67,8 +91,4 @@ func (r *rssService) getRSSFeed(url string, feedCollector chan *gofeed.Feed, wg 
 
 func NewRSSService(p RSSServiceParams) *rssService {
 	return &rssService{dbRepository: p.DBRepository, rssParser: p.RSSParser}
-}
-
-func NewRSSParser() *gofeed.Parser {
-	return gofeed.NewParser()
 }

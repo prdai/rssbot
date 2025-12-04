@@ -8,6 +8,7 @@ export class WorkerContainer extends Container<Env> {
   leepAfter = "9m";
   envVars = {
     MONGODB_URI: process.env.MONGODB_URI,
+    UNTRACKED_FEED_MAX_ITEMS: process.env.UNTRACKED_FEED_MAX_ITEMS,
   };
   override onStart() {
     log.info("Container successfully started");

@@ -3,9 +3,12 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
+	"sync"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -30,8 +33,9 @@ func NewMongoDBRepository() (mongoDBRepository, error) {
 	return mongoDBRepository{client: client, db: db, collection: coll}, nil
 }
 
-func (m mongoDBRepository) GetFeed(feedHash string, c chan *Feed) {
-	filter := bson.D{{"feedHash", feedHash}}
+func (m mongoDBRepository) GetFeed(feedHash string, c chan *Feed, wg *sync.WaitGroup) {
+	defer wg.Done()
+	filter := bson.D{primitive.E{Key: "feedHash", Value: feedHash}}
 	cursor, err := m.collection.Find(context.TODO(), filter)
 	if err != nil {
 		slog.Error(err.Error())
@@ -49,6 +53,21 @@ func (m mongoDBRepository) GetFeed(feedHash string, c chan *Feed) {
 		c <- nil
 		return
 	}
+	if len(results) == 0 {
+		slog.Error("no feed found with the provided hash")
+		c <- nil
+		return
+	}
 	feedResult := results[0]
 	c <- &feedResult
+}
+
+func (m mongoDBRepository) CreateFeed(feedHash string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	doc := Feed{FeedHash: feedHash}
+	result, err := m.collection.InsertOne(context.TODO(), doc)
+	if err != nil {
+		slog.Error(err.Error())
+	}
+	fmt.Printf("%+v\n", *result)
 }
