@@ -1,1 +1,1 @@
-bun run cf-typegen
+bun run cf-typegen && git add worker-configuration.d.ts
