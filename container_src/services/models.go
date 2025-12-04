@@ -17,7 +17,7 @@ type RSSServiceParams struct {
 }
 
 type RSSService interface {
-	SyncRSSFeeds(rssFeeds []string, ctx context.Context) []string
+	SyncRSSFeeds(rssFeeds []string, ctx context.Context) []*NewItems
 	getRSSFeed(url string, feedCollector chan *gofeed.Feed, wg *sync.WaitGroup)
 	syncRSSFeed(url string, c chan *NewItems)
 	captureNewItems(items []*gofeed.Item, wg *sync.WaitGroup, lastItemHash string, newItemsChan chan *NewItems)

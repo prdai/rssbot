@@ -3,7 +3,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
 	"sync"
@@ -64,11 +63,10 @@ func (m mongoDBRepository) GetFeed(feedHash string, c chan *Feed, wg *sync.WaitG
 func (m mongoDBRepository) CreateFeed(feedHash string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	doc := Feed{FeedHash: feedHash}
-	result, err := m.collection.InsertOne(context.TODO(), doc)
+	_, err := m.collection.InsertOne(context.TODO(), doc)
 	if err != nil {
 		slog.Error(err.Error())
 	}
-	fmt.Printf("%+v\n", *result)
 }
 
 func (m mongoDBRepository) UpdateFeed(feedHash string, lastItemHash string) {

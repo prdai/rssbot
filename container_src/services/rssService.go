@@ -19,15 +19,19 @@ type rssService struct {
 	untrackedFeedMaxItem int `env:"UNTRACKED_FEED_MAX_ITEMS"`
 }
 
-func (r *rssService) SyncRSSFeeds(rssFeeds []string, ctx context.Context) []string {
+func (r *rssService) SyncRSSFeeds(rssFeeds []string, ctx context.Context) []*NewItems {
 	rssFeedsNewItemsChan := make(chan *NewItems, len(rssFeeds))
 	for _, rssFeed := range rssFeeds {
 		slog.Info(rssFeed)
 		go r.syncRSSFeed(rssFeed, rssFeedsNewItemsChan)
 	}
-	rssFeedItems := <-rssFeedsNewItemsChan
-	fmt.Printf("%+v\n", rssFeedItems)
-	return make([]string, 0)
+	var rssFeedsNewItems []*NewItems
+	for range len(rssFeeds) {
+		rssFeedItems := <-rssFeedsNewItemsChan
+		rssFeedsNewItems = append(rssFeedsNewItems, rssFeedItems)
+	}
+	fmt.Printf("%+v\n", rssFeedsNewItems)
+	return make([]*NewItems, 0)
 }
 
 func (r *rssService) syncRSSFeed(url string, c chan *NewItems) {
