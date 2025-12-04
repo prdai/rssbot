@@ -53,6 +53,7 @@ func (r *rssService) syncRSSFeed(url string, c chan *NewItems) {
 	go r.captureNewItems(fetchedFeed.Items, &wg, retrivedFeed.LastItemHash, newItemsChan)
 	wg.Wait()
 	newItems := <-newItemsChan
+	go r.dbRepository.UpdateFeed(feedHash, newItems.LatestItemHash)
 	c <- newItems
 }
 

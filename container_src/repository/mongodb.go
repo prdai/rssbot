@@ -8,7 +8,6 @@ import (
 	"os"
 	"sync"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -35,7 +34,7 @@ func NewMongoDBRepository() (mongoDBRepository, error) {
 
 func (m mongoDBRepository) GetFeed(feedHash string, c chan *Feed, wg *sync.WaitGroup) {
 	defer wg.Done()
-	filter := bson.D{primitive.E{Key: "feedHash", Value: feedHash}}
+	filter := bson.D{bson.E{Key: "feedHash", Value: feedHash}}
 	cursor, err := m.collection.Find(context.TODO(), filter)
 	if err != nil {
 		slog.Error(err.Error())
@@ -70,4 +69,13 @@ func (m mongoDBRepository) CreateFeed(feedHash string, wg *sync.WaitGroup) {
 		slog.Error(err.Error())
 	}
 	fmt.Printf("%+v\n", *result)
+}
+
+func (m mongoDBRepository) UpdateFeed(feedHash string, lastItemHash string) {
+	filter := bson.D{bson.E{Key: "feedHash", Value: feedHash}}
+	replacement := bson.D{bson.E{Key: "feedHash", Value: feedHash}, bson.E{Key: "lastItemHash", Value: lastItemHash}}
+	_, err := m.collection.ReplaceOne(context.TODO(), filter, replacement)
+	if err != nil {
+		slog.Error(err.Error())
+	}
 }
