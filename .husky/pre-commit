@@ -1,1 +1,2 @@
-bun run cf-typegen && git add worker-configuration.d.ts
+cd container_src && golint . && bun run cf-typegen 
+
