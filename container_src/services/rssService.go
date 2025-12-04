@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
+	"strconv"
 	"sync"
 
 	"github.com/prdai/rssbot/repository"
@@ -16,7 +18,7 @@ import (
 type rssService struct {
 	dbRepository         repository.Repository
 	rssParser            *gofeed.Parser
-	untrackedFeedMaxItem int `env:"UNTRACKED_FEED_MAX_ITEMS"`
+	untrackedFeedMaxItem int
 }
 
 func (r *rssService) SyncRSSFeeds(rssFeeds []string, ctx context.Context) []*NewItems {
@@ -95,5 +97,10 @@ func (r *rssService) getRSSFeed(url string, feedCollector chan *gofeed.Feed, wg 
 }
 
 func NewRSSService(p RSSServiceParams) *rssService {
-	return &rssService{dbRepository: p.DBRepository, rssParser: p.RSSParser}
+	untrackedFeedMaxItem, err := strconv.Atoi(os.Getenv("UNTRACKED_FEED_MAX_ITEMS"))
+	if err != nil {
+		slog.Error(err.Error())
+		panic(err.Error())
+	}
+	return &rssService{dbRepository: p.DBRepository, rssParser: p.RSSParser, untrackedFeedMaxItem: untrackedFeedMaxItem}
 }
