@@ -40,11 +40,19 @@ func (r *rssService) SyncRSSFeeds(rssFeeds []string, ctx context.Context) []stri
 }
 
 func (r *rssService) syncRSSFeed(url string) {
-	feedId := utils.ConvertStringToHash(url)
-	feedCollector := make(chan *gofeed.Feed, 1)
+	feedHash := utils.ConvertStringToHash(url)
+	feedFetcherChan := make(chan *gofeed.Feed, 1)
+	feedRetrivalChan := make(chan *repository.Feed, 1)
 	var wg sync.WaitGroup
 	wg.Add(2)
-	go r.getRSSFeed(url, feedCollector, &wg)
+	go r.getRSSFeed(url, feedFetcherChan, &wg)
+	go r.dbRepository.GetFeed(feedHash, feedRetrivalChan)
+	wg.Wait()
+	fetchedFeed := <-feedFetcherChan
+	retrivedFeed := <-feedRetrivalChan
+	if fetchedFeed == nil || retrivedFeed == nil {
+		return
+	}
 }
 
 func (r *rssService) getRSSFeed(url string, feedCollector chan *gofeed.Feed, wg *sync.WaitGroup) {
@@ -56,12 +64,6 @@ func (r *rssService) getRSSFeed(url string, feedCollector chan *gofeed.Feed, wg 
 	}
 	feedCollector <- feed
 }
-
-// hash, err := hashstructure.Hash(*feed, hashstructure.FormatV2, nil)
-// if err != nil {
-// 	slog.Error(err.Error())
-// 	return nil
-// }
 
 func NewRSSService(p RSSServiceParams) *rssService {
 	return &rssService{dbRepository: p.DBRepository, rssParser: p.RSSParser}

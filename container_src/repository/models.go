@@ -1,10 +1,14 @@
 // Package repository provides a repository for the database.
 package repository
 
+const RepositoryName = "rssbot"
+
 type Repository interface {
-	getFeed(feedUrl string)
+	GetFeed(feedHash string, c chan *Feed)
 }
 
 type Feed struct {
-	_id string
+	_id          string
+	FeedHash     string
+	LastItemHash string
 }
