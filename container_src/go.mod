@@ -31,6 +31,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/noirbizarre/gonja v0.0.0-20200629003239-4d051fd0be61 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
+	github.com/resend/resend-go/v2 v2.28.0 // indirect
 	github.com/sirupsen/logrus v1.3.0 // indirect
 	github.com/toorop/go-dkim v0.0.0-20201103131630-e1cd1a0a5208 // indirect
 	github.com/wneessen/go-mail v0.7.2 // indirect
