@@ -12,6 +12,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /server
 FROM scratch
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /server /server
+COPY container_src/prompts/ /prompts/
 EXPOSE 8080
 
 CMD ["/server"]

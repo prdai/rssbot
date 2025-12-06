@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/prdai/rssbot/clients"
 	"github.com/prdai/rssbot/repository"
 	"github.com/prdai/rssbot/services"
 
@@ -25,9 +26,11 @@ func main() {
 		}
 	}
 	c := dig.New()
+	// TOOD: create a config that can be initialized and will be passed for all of the following
 	must(c.Provide(services.NewRSSParser))
 	must(c.Provide(repository.NewMongoDBRepository, dig.As(new(repository.Repository))))
 	must(c.Provide(services.NewRSSService, dig.As(new(services.RSSService))))
+	must(c.Provide(clients.NewAIClient))
 	handler := NewHandler(c)
 	router := http.NewServeMux()
 	router.HandleFunc("/", handler.mainHandler)

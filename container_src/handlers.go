@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/prdai/rssbot/clients"
 	"github.com/prdai/rssbot/services"
 
 	"go.uber.org/dig"
@@ -33,9 +34,15 @@ func (h *handler) mainHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	slog.Info(fmt.Sprintf("Received request: %s", RSSFeeds))
-	if err := h.container.Invoke(func(s services.RSSService) error {
+	if err := h.container.Invoke(func(s services.RSSService, ai *clients.AIClient) error {
 		slog.Info("Invoking Sync RSS Feeds")
-		s.SyncRSSFeeds(RSSFeeds.Feeds, r.Context())
+		newRssFeedsItems := s.SyncRSSFeeds(RSSFeeds.Feeds, r.Context())
+		email, err := ai.GenerateEmail(newRssFeedsItems)
+		if err != nil {
+			slog.Error(err.Error())
+			return nil
+		}
+		slog.Info(fmt.Sprintf("%+v", email))
 		return nil
 	}); err != nil {
 		slog.Error("dig invoke failed", "err", err)

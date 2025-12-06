@@ -3,7 +3,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
 	"strconv"
@@ -32,8 +31,7 @@ func (r *rssService) SyncRSSFeeds(rssFeeds []string, ctx context.Context) []*New
 		rssFeedItems := <-rssFeedsNewItemsChan
 		rssFeedsNewItems = append(rssFeedsNewItems, rssFeedItems)
 	}
-	slog.Info(fmt.Sprintf("%+v\n", &rssFeedsNewItems))
-	return make([]*NewItems, 0)
+	return rssFeedsNewItems
 }
 
 func (r *rssService) syncRSSFeed(url string, c chan *NewItems) {

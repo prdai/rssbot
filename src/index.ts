@@ -9,7 +9,9 @@ export class WorkerContainer extends Container<Env> {
   envVars = {
     MONGODB_URI: process.env.MONGODB_URI,
     UNTRACKED_FEED_MAX_ITEMS: process.env.UNTRACKED_FEED_MAX_ITEMS,
+    GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
   };
+
   override onStart() {
     log.info("Container successfully started");
   }
