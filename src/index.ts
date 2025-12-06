@@ -48,6 +48,7 @@ export default {
     log.info(
       `Triggered RSS Feed Sync from ${controller.cron} at ${controller.scheduledTime}`,
     );
-    await fetch("/");
+    const options = { method: "POST" };
+    await fetch("/", options);
   },
 };
