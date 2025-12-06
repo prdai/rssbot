@@ -23,7 +23,6 @@ type rssService struct {
 func (r *rssService) SyncRSSFeeds(rssFeeds []string, ctx context.Context) []*NewItems {
 	rssFeedsNewItemsChan := make(chan *NewItems, len(rssFeeds))
 	for _, rssFeed := range rssFeeds {
-		slog.Info(rssFeed)
 		go r.syncRSSFeed(rssFeed, rssFeedsNewItemsChan)
 	}
 	var rssFeedsNewItems []*NewItems

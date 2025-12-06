@@ -42,7 +42,7 @@ func (h *handler) mainHandler(w http.ResponseWriter, r *http.Request) {
 			slog.Error(err.Error())
 			return nil
 		}
-		slog.Info(fmt.Sprintf("%+v", email))
+		clients.SendEmail(email.Title, email.HTMLBody)
 		return nil
 	}); err != nil {
 		slog.Error("dig invoke failed", "err", err)

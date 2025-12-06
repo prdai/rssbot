@@ -10,6 +10,9 @@ export class WorkerContainer extends Container<Env> {
     MONGODB_URI: process.env.MONGODB_URI,
     UNTRACKED_FEED_MAX_ITEMS: process.env.UNTRACKED_FEED_MAX_ITEMS,
     GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
+    EMAIL_ADDRESS: process.env.EMAIL_ADDRESS,
+    EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
+    TO_EMAIL: process.env.TO_EMAIL,
   };
 
   override onStart() {
