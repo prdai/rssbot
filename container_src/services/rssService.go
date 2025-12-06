@@ -32,7 +32,7 @@ func (r *rssService) SyncRSSFeeds(rssFeeds []string, ctx context.Context) []*New
 		rssFeedItems := <-rssFeedsNewItemsChan
 		rssFeedsNewItems = append(rssFeedsNewItems, rssFeedItems)
 	}
-	fmt.Printf("%+v\n", rssFeedsNewItems)
+	slog.Info(fmt.Sprintf("%+v\n", &rssFeedsNewItems))
 	return make([]*NewItems, 0)
 }
 
@@ -51,11 +51,12 @@ func (r *rssService) syncRSSFeed(url string, c chan *NewItems) {
 		return
 	}
 	newItemsChan := make(chan *NewItems, len(fetchedFeed.Items))
-	wg.Add(2)
 	if retrivedFeed == nil {
+		wg.Add(1)
 		retrivedFeed = &repository.Feed{}
 		go r.dbRepository.CreateFeed(feedHash, &wg)
 	}
+	wg.Add(1)
 	go r.captureNewItems(fetchedFeed.Items, &wg, retrivedFeed.LastItemHash, newItemsChan)
 	wg.Wait()
 	newItems := <-newItemsChan
