@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/luci/go-render/render"
 	"github.com/prdai/rssbot/services"
@@ -91,6 +92,7 @@ type EmailContent struct {
 
 func (a *AIClient) GenerateEmail(rssFeedsItems []*services.NewItems) (EmailContent, error) {
 	stringRssFeedsItems := render.Render(rssFeedsItems)
+	stringRssFeedsItems += render.Render(time.Now())
 	contents := []*genai.Content{
 		genai.NewContentFromText(stringRssFeedsItems, genai.RoleUser),
 	}
