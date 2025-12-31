@@ -22,5 +22,6 @@ export const RSSFEEDS: RSSFeeds = {
                 "https://developers.cloudflare.com/changelog/rss/application-security.xml",
                 "https://kubernetes.io/feed.xml",
                 "http://blog.golang.org/feed.atom",
+                "https://research.swtch.com/feed.atom",
         ],
 };
