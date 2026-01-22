@@ -2,10 +2,11 @@ import { Container, getContainer } from "@cloudflare/containers";
 import { Hono } from "hono";
 import log from "loglevel";
 import { RSSFEEDS } from "./data";
+import { ScheduledCron } from "./cron";
 
 export class WorkerContainer extends Container<Env> {
   defaultPort = 8080;
-  leepAfter = "9m";
+  leepAfter = "1h";
   envVars = {
     MONGODB_URI: process.env.MONGODB_URI,
     UNTRACKED_FEED_MAX_ITEMS: process.env.UNTRACKED_FEED_MAX_ITEMS,
@@ -39,15 +40,5 @@ app.post("/", async (c) => {
 
 export default {
   fetch: app.fetch,
-  scheduled: async (
-    controller: ScheduledController,
-    _: Env,
-    __: ExecutionContext,
-  ) => {
-    log.info(
-      `Triggered RSS Feed Sync from ${controller.cron} at ${controller.scheduledTime}`,
-    );
-    const options = { method: "POST" };
-    await fetch("/", options);
-  },
+  scheduled: ScheduledCron,
 };

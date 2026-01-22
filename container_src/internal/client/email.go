@@ -1,5 +1,4 @@
-// Package clients provides a client for the email service.
-package clients
+package client
 
 import (
 	"log/slog"

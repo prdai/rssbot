@@ -4,14 +4,14 @@ package services
 import (
 	"context"
 	"log/slog"
+	"net/http"
 	"os"
 	"strconv"
 	"sync"
 
+	"github.com/mmcdole/gofeed"
 	"github.com/prdai/rssbot/repository"
 	"github.com/prdai/rssbot/utils"
-
-	"github.com/mmcdole/gofeed"
 )
 
 type rssService struct {
@@ -22,9 +22,12 @@ type rssService struct {
 
 func (r *rssService) SyncRSSFeeds(rssFeeds []string, ctx context.Context) []*NewItems {
 	rssFeedsNewItemsChan := make(chan *NewItems, len(rssFeeds))
+	var wg sync.WaitGroup
 	for _, rssFeed := range rssFeeds {
-		go r.syncRSSFeed(rssFeed, rssFeedsNewItemsChan)
+		wg.Add(1)
+		go r.syncRSSFeed(rssFeed, rssFeedsNewItemsChan, &wg)
 	}
+	wg.Wait()
 	var rssFeedsNewItems []*NewItems
 	for range len(rssFeeds) {
 		rssFeedItems := <-rssFeedsNewItemsChan
@@ -33,20 +36,26 @@ func (r *rssService) SyncRSSFeeds(rssFeeds []string, ctx context.Context) []*New
 	return rssFeedsNewItems
 }
 
-func (r *rssService) syncRSSFeed(url string, c chan *NewItems) {
+func (r *rssService) syncRSSFeed(url string, c chan *NewItems, feedWg *sync.WaitGroup) {
+	defer feedWg.Done()
 	feedHash := utils.ConvertStringToHash(url)
 	feedFetcherChan := make(chan *gofeed.Feed, 1)
 	feedRetrivalChan := make(chan *repository.Feed, 1)
+
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(1)
 	go r.getRSSFeed(url, feedFetcherChan, &wg)
-	go r.dbRepository.GetFeed(feedHash, feedRetrivalChan, &wg)
 	wg.Wait()
 	fetchedFeed := <-feedFetcherChan
-	retrivedFeed := <-feedRetrivalChan
 	if fetchedFeed == nil {
 		return
 	}
+
+	wg.Add(1)
+	go r.dbRepository.GetFeed(feedHash, feedRetrivalChan, &wg)
+	wg.Wait()
+	retrivedFeed := <-feedRetrivalChan
+
 	newItemsChan := make(chan *NewItems, len(fetchedFeed.Items))
 	if retrivedFeed == nil {
 		wg.Add(1)
@@ -66,8 +75,10 @@ func (r *rssService) captureNewItems(items []*gofeed.Item, wg *sync.WaitGroup, l
 	var firstHashString string
 	var newItems []*gofeed.Item
 	for i, item := range items {
-		hashString, error := utils.ConvertObjectToHash(item)
-		if error != nil {
+		hashString, err := utils.ConvertObjectToHash(item)
+		if err != nil {
+			// TODO: create a copy of the gofeed item and then implement String()
+			// slog.Error("Unable to Hash Item: %s, Error Raised: %s", string(item), err.Error())
 			continue
 		}
 		if i == 0 {
@@ -101,4 +112,16 @@ func NewRSSService(p RSSServiceParams) *rssService {
 		panic(err.Error())
 	}
 	return &rssService{dbRepository: p.DBRepository, rssParser: p.RSSParser, untrackedFeedMaxItem: untrackedFeedMaxItem}
+}
+
+func InvokeRssSync(RSSFeeds RSSFeeds, s services.RSSService, ai *clients.AIClient, r *http.Request) error {
+	slog.Info("Invoking Sync RSS Feeds")
+	newRssFeedsItems := s.SyncRSSFeeds(RSSFeeds.Feeds, r.Context())
+	email, err := ai.GenerateEmail(newRssFeedsItems)
+	if err != nil {
+		slog.Error(err.Error())
+		return nil
+	}
+	clients.SendEmail(email.Title, email.HTMLBody)
+	return nil
 }

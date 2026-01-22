@@ -1,3 +1,5 @@
+// note: the reason we can not put this into a json file is because of how cloudflare builds the code and then deploys it
+
 import { RSSFeeds } from "./models";
 
 export const RSSFEEDS: RSSFeeds = {
@@ -23,5 +25,6 @@ export const RSSFEEDS: RSSFeeds = {
                 "https://kubernetes.io/feed.xml",
                 "http://blog.golang.org/feed.atom",
                 "https://research.swtch.com/feed.atom",
+                "https://antonz.org/index.xml",
         ],
 };

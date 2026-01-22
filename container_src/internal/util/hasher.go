@@ -1,5 +1,4 @@
-// Package utils is for helper and utility related work
-package utils
+package util
 
 import (
 	"crypto/sha256"

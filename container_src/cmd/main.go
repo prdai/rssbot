@@ -10,36 +10,39 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/prdai/rssbot/clients"
-	"github.com/prdai/rssbot/repository"
-	"github.com/prdai/rssbot/services"
+	"github.com/prdai/rssbot/internal/clients"
+	"github.com/prdai/rssbot/internal/handler"
+	"github.com/prdai/rssbot/internal/repository"
+	"github.com/prdai/rssbot/internal/services"
 
 	"go.uber.org/dig"
 )
 
-func main() {
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+func initalizeInitialDepedencies(c *dig.Container) {
 	must := func(err error) {
 		if err != nil {
 			panic(err)
 		}
 	}
-	c := dig.New()
 	// TOOD: create a config that can be initialized and will be passed for all of the following
+	must(c.Provide(NewConfig))
 	must(c.Provide(services.NewRSSParser))
 	must(c.Provide(repository.NewMongoDBRepository, dig.As(new(repository.Repository))))
 	must(c.Provide(services.NewRSSService, dig.As(new(services.RSSService))))
 	must(c.Provide(clients.NewAIClient))
-	handler := NewHandler(c)
-	router := http.NewServeMux()
-	router.HandleFunc("/", handler.mainHandler)
+}
 
+func main() {
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+	c := dig.New()
+	initalizeInitialDepedencies(c)
+	router := http.NewServeMux()
+	router.HandleFunc("/", handler.RSSHandler(c))
 	server := &http.Server{
 		Addr:    ":8080",
 		Handler: router,
 	}
-
 	go func() {
 		slog.Info(fmt.Sprintf("Server listening on %s\n", server.Addr))
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {

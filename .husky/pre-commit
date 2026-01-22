@@ -1,2 +1,2 @@
-cd container_src && golint . && bun run cf-typegen 
+git ls-files -- container_src/ | xargs pre-commit run --files && bun run cf-typegen 
 
