@@ -35,23 +35,27 @@ const app = new Hono<{
   Bindings: Env;
 }>();
 
-app.post("/", async (c) => {
-  const rssfeeds = JSON.stringify(RSSFEEDS);
-  const container = getContainer(c.env.CONTAINER);
-  return await container.fetch(c.req.raw, { body: rssfeeds });
-});
+const runSync = async (env: Env) => {
+  const container = getContainer(env.CONTAINER);
+  return await container.fetch("http://container/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(RSSFEEDS),
+  });
+};
+
+app.post("/", async (c) => runSync(c.env));
 
 export default {
   fetch: app.fetch,
   scheduled: async (
     controller: ScheduledController,
-    _: Env,
-    __: ExecutionContext,
+    env: Env,
+    _ctx: ExecutionContext,
   ) => {
     log.info(
       `Triggered RSS Feed Sync from ${controller.cron} at ${controller.scheduledTime}`,
     );
-    const options = { method: "POST" };
-    await fetch("/", options);
+    await runSync(env);
   },
 };
