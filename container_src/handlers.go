@@ -42,7 +42,9 @@ func (h *handler) mainHandler(w http.ResponseWriter, r *http.Request) {
 			slog.Error(err.Error())
 			return nil
 		}
-		clients.SendEmail(email.Title, email.HTMLBody)
+		if err := clients.SendEmail(email.Title, email.HTMLBody); err != nil {
+			slog.Error("failed to send email", "err", err)
+		}
 		return nil
 	}); err != nil {
 		slog.Error("dig invoke failed", "err", err)
