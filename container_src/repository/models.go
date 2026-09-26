@@ -3,8 +3,6 @@ package repository
 
 import "sync"
 
-const RepositoryName = "rssbot"
-
 type Repository interface {
 	GetFeed(feedHash string, c chan *Feed, wg *sync.WaitGroup)
 	CreateFeed(feedHash string, wg *sync.WaitGroup)
@@ -12,10 +10,6 @@ type Repository interface {
 }
 
 type Feed struct {
-	FeedHash     string `bson:"feedHash,omitempty"`
-	LastItemHash string `bson:"lastItemHash,omitempty"`
+	FeedHash     string
+	LastItemHash string
 }
-
-// TODO
-// func (f Feed) convertToBsonName() {
-// }

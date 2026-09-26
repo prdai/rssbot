@@ -1,3 +1,4 @@
+import process from "node:process";
 import { Container, getContainer } from "@cloudflare/containers";
 import { Hono } from "hono";
 import log from "loglevel";
@@ -7,11 +8,13 @@ export class WorkerContainer extends Container<Env> {
   defaultPort = 8080;
   leepAfter = "9m";
   envVars = {
-    MONGODB_URI: process.env.MONGODB_URI,
-    UNTRACKED_FEED_MAX_ITEMS: process.env.UNTRACKED_FEED_MAX_ITEMS,
-    GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
-    RESEND_API_KEY: process.env.RESEND_API_KEY,
-    TO_EMAIL: process.env.TO_EMAIL,
+    GOOGLE_API_KEY: process.env.GOOGLE_API_KEY ?? "",
+    UNTRACKED_FEED_MAX_ITEMS: process.env.UNTRACKED_FEED_MAX_ITEMS ?? "",
+    CLOUDFLARE_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN ?? "",
+    CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID ?? "",
+    KV_NAMESPACE_ID: process.env.KV_NAMESPACE_ID ?? "",
+    FROM_EMAIL: process.env.FROM_EMAIL ?? "",
+    TO_EMAIL: process.env.TO_EMAIL ?? "",
   };
 
   override onStart() {
