@@ -6,7 +6,7 @@ import { RSSFEEDS } from "./data";
 
 export class WorkerContainer extends Container<Env> {
   defaultPort = 8080;
-  leepAfter = "9m";
+  sleepAfter = "9m";
   envVars = {
     OPENCODE_API_KEY: process.env.OPENCODE_API_KEY ?? "",
     OPENCODE_MODEL: process.env.OPENCODE_MODEL ?? "",
