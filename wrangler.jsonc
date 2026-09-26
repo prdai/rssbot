@@ -6,6 +6,7 @@
   "compatibility_date": "2025-10-08",
   "compatibility_flags": ["nodejs_compat"],
   "vars": {
+    "OPENCODE_MODEL": "space-bunny-free",
     "UNTRACKED_FEED_MAX_ITEMS": "3",
     "CLOUDFLARE_ACCOUNT_ID": "6503f7d355399abee9e748d3100675d4",
     "KV_NAMESPACE_ID": "1b43a5742b954bf3bcc5d0d817f9a92d",

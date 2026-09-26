@@ -6,9 +6,10 @@ import { RSSFEEDS } from "./data";
 
 export class WorkerContainer extends Container<Env> {
   defaultPort = 8080;
-  leepAfter = "9m";
+  sleepAfter = "9m";
   envVars = {
-    GOOGLE_API_KEY: process.env.GOOGLE_API_KEY ?? "",
+    OPENCODE_API_KEY: process.env.OPENCODE_API_KEY ?? "",
+    OPENCODE_MODEL: process.env.OPENCODE_MODEL ?? "",
     UNTRACKED_FEED_MAX_ITEMS: process.env.UNTRACKED_FEED_MAX_ITEMS ?? "",
     CLOUDFLARE_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN ?? "",
     CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID ?? "",

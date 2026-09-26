@@ -18,26 +18,24 @@ Field names may vary (e.g., content vs Content)—parse flexibly.
 Return ONLY a raw JSON object. No markdown code fences, no explanations, no extra text.
 
 {
-  "subject": "The email subject line",
-  "html": "Complete minified HTML document"
+  "title": "The email subject line",
+  "body": "Complete minified HTML document"
 }
+
+**Title format (required):**
+Pattern: `[<Label>] | RSSBot Sync [<YYYY-MM-DD>]`
+- Label: A short label inferred from content, 1-60 characters, no square brackets. Default: "Daily Digest"
+- Date: Today's date in `YYYY-MM-DD`. The current datetime is included in the input.
+- NO EMOJIS. Clean text only.
 </output_requirements>
 
 <content_guidelines>
-
-**Subject Line Formula:**
-Pattern: `{Label}: {Top Story Title} & {Count} more`
-- Label: Infer from content (e.g., "Tech Daily", "News Sync"). Default: "Daily Digest"
-- Top Story: First item's title from first non-empty feed
-- Count: Total items minus 1
-- NO EMOJIS. Clean text only.
-Example: "Tech Daily: New AI Model Released & 12 more"
 
 **Tone & Vibe:**
 Imagine you're a friend sharing interesting links over coffee—knowledgeable but not pretentious, concise but not rushed. Keep it breezy yet professional.
 
 - Greeting: Generate a natural, time-aware intro (e.g., "Good morning—here's what's new." or "Your evening roundup is ready.")
-- Zero State: Subject = "All caught up" | Body = "No new updates available."
+- Zero State: title = "[Daily Digest] | RSSBot Sync [<today's date>]" and body = a minimal HTML document whose only content is "No new updates available."
 
 </content_guidelines>
 
