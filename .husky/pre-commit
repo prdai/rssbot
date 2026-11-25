@@ -1,2 +1,1 @@
-cd container_src && golint . && bun run cf-typegen 
-
+./node_modules/.bin/tsc --noEmit && ./node_modules/.bin/eslint src

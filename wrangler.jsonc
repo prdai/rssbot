@@ -3,41 +3,28 @@
   "name": "rssbot",
   "main": "src/index.ts",
   "account_id": "6503f7d355399abee9e748d3100675d4",
-  "compatibility_date": "2025-10-08",
+  "compatibility_date": "2026-10-15",
   "compatibility_flags": ["nodejs_compat"],
   "vars": {
-    "OPENCODE_MODEL": "space-bunny-free",
-    "UNTRACKED_FEED_MAX_ITEMS": "3",
-    "CLOUDFLARE_ACCOUNT_ID": "6503f7d355399abee9e748d3100675d4",
-    "KV_NAMESPACE_ID": "1b43a5742b954bf3bcc5d0d817f9a92d",
-    "FROM_EMAIL": "rssbot@prdai.dev",
+    "FROM_EMAIL": "rss@prdai.dev",
     "TO_EMAIL": "go2ranuga@gmail.com",
   },
+  "kv_namespaces": [
+    {
+      "binding": "FEED_STATE",
+      "id": "1b43a5742b954bf3bcc5d0d817f9a92d",
+    },
+  ],
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "destination_address": "go2ranuga@gmail.com",
+    },
+  ],
   "observability": {
     "enabled": true,
   },
   "placement": { "mode": "smart" },
-  "containers": [
-    {
-      "class_name": "WorkerContainer",
-      "image": "./Dockerfile",
-      "max_instances": 10,
-    },
-  ],
-  "durable_objects": {
-    "bindings": [
-      {
-        "class_name": "WorkerContainer",
-        "name": "CONTAINER",
-      },
-    ],
-  },
-  "migrations": [
-    {
-      "new_sqlite_classes": ["WorkerContainer"],
-      "tag": "v1",
-    },
-  ],
   "upload_source_maps": true,
-  "triggers": { "crons": ["0 0 * * *"] },
+  "triggers": { "crons": ["0 * * * *"] },
 }

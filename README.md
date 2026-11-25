@@ -1,103 +1,72 @@
 # rssbot
 
-Daily RSS digest bot. A Cloudflare Worker triggers a Go container on a cron
-schedule; the container fetches the feeds, diffs them against stored state, asks
-an LLM to write an HTML digest, and sends it by email.
+Forwards new RSS items to email. A Cloudflare Worker runs on a cron, fetches the
+feeds listed in `src/data.ts`, and sends one email per new item from
+`FROM_EMAIL` to `TO_EMAIL`.
+
+The email subject is the item title. The body is the item content, with the feed
+name, author, and published date above it. No digest and no LLM generation.
 
 ## How it works
 
-1. Cron (`0 0 * * *`) invokes the `scheduled` handler in `src/index.ts`.
-2. The Worker forwards the feed list from `src/data.ts` to the `WorkerContainer`
-   Durable Object, which proxies requests to the Go HTTP server on `:8080`.
-3. The container (Go, `container_src/`):
-   - fetches each feed concurrently (`gofeed`),
-   - reads the last seen item hash per feed from Cloudflare KV and stores the new
-     one (key is a hash of the feed URL, value is the last item hash),
-   - renders the new items into the digest prompt (`container_src/prompts/index.j2`),
-   - calls an OpenCode Zen chat model for a `{ title, body }` JSON digest.
-4. The container sends the digest through Cloudflare Email Service.
+1. Cron (`0 * * * *`) invokes the `scheduled` handler in `src/index.ts`.
+2. For each feed, the Worker fetches and parses RSS, Atom, or RDF
+   (`src/rss.ts`).
+3. Seen item ids are stored per feed in the `FEED_STATE` KV namespace. On the
+   first run for a feed the current ids are recorded without sending email.
+4. Every unseen item is sent as its own email through the `EMAIL` binding. An
+   item is marked seen only after its email is sent.
 
-Cloudflare REST APIs are called from Go with the official `cloudflare-go/v6` SDK.
-`send_email` and KV bindings are Worker-only, which is why the logic lives in the
-container but talks to the REST API.
+`POST /` runs a sync manually.
 
 ## Configuration
 
-Non-secret config lives in `wrangler.jsonc` under `vars` (it is deployed from the
-repo, so a redeploy cannot wipe it). Credentials are Worker secrets.
-
-Vars (`wrangler.jsonc`):
+Non-secret config lives in `wrangler.jsonc` under `vars`.
 
 | Var | Description |
 | --- | --- |
-| `OPENCODE_MODEL` | OpenCode Zen model id (default `space-bunny-free`) |
-| `UNTRACKED_FEED_MAX_ITEMS` | Items to backfill for a feed seen for the first time |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account id |
-| `KV_NAMESPACE_ID` | KV namespace that stores feed state |
-| `FROM_EMAIL` | Sender address for the digest |
-| `TO_EMAIL` | Recipient of the digest |
+| `FROM_EMAIL` | Sender address (must be on a domain onboarded to Email Sending) |
+| `TO_EMAIL` | Recipient |
 
-Secrets:
+Bindings:
 
-| Secret | Description |
+| Binding | Description |
 | --- | --- |
-| `OPENCODE_API_KEY` | OpenCode Zen API key (`oc_sk_...`) |
-| `CLOUDFLARE_API_TOKEN` | API token with Workers KV Storage Edit and Email Sending Send |
-
-Set secrets with:
-
-```sh
-CLOUDFLARE_ACCOUNT_ID=<account_id> bunx wrangler secret put OPENCODE_API_KEY
-CLOUDFLARE_ACCOUNT_ID=<account_id> bunx wrangler secret put CLOUDFLARE_API_TOKEN
-```
-
-The account has more than one Cloudflare account, so `CLOUDFLARE_ACCOUNT_ID` must
-be set (or `account_id` in `wrangler.jsonc`) for non-interactive Wrangler
-commands.
-
-### OpenCode Zen
-
-Models are served from `https://opencode.ai/zen/v1` (OpenAI-compatible chat
-completions). `space-bunny-free` is free and reachable with an API key. Other
-free models are restricted to use inside the OpenCode app, and paid models
-require Zen credits; pick one and set `OPENCODE_MODEL` accordingly.
+| `FEED_STATE` | KV namespace that stores seen item ids per feed |
+| `EMAIL` | Email Sending binding, restricted to `TO_EMAIL` |
 
 ## One-time setup
 
-1. Create the KV namespace and put its id in `wrangler.jsonc` (`KV_NAMESPACE_ID`):
+1. Create the KV namespace and put its id in `wrangler.jsonc`:
 
    ```sh
    bunx wrangler kv namespace create rssbot
    ```
 
-2. Create a Cloudflare API token with `Account > Workers KV Storage > Edit` and
-   `Account > Email Sending > Send`, then set it as `CLOUDFLARE_API_TOKEN`.
+2. Onboard the sending domain under **Compute > Email Service > Email Sending**.
+   This adds the `cf-bounce` MX/SPF/DKIM records and a DMARC record.
 
-3. Onboard the sending domain under **Compute > Email Service > Email Sending**.
-   This adds the `cf-bounce` MX/SPF/DKIM records and a DMARC record. Sending is a
-   separate onboarding from Email Routing; a domain with Email Routing enabled is
-   not necessarily able to send.
-
-4. Set `OPENCODE_API_KEY` and deploy.
+3. Deploy.
 
 ## Local development
 
 ```sh
-bun install          # if this fails extracting wrangler, use: npm install --ignore-scripts
+bun install
 bun run cf-typegen   # regenerate worker-configuration.d.ts
 bun run dev
 ```
 
+`wrangler dev` simulates the email binding and logs messages locally.
+
 ## Deploy
 
 ```sh
-CLOUDFLARE_ACCOUNT_ID=<account_id> bunx wrangler deploy
+bunx wrangler deploy
 ```
 
 ## Checks
 
 ```sh
-cd container_src && go build ./... && go vet ./... && gofmt -l .
-mise exec node@26.7.0 -- ./node_modules/.bin/tsc --noEmit
-mise exec node@26.7.0 -- ./node_modules/.bin/eslint src
+./node_modules/.bin/tsc --noEmit
+./node_modules/.bin/eslint src
 ```
