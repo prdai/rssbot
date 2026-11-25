@@ -13,11 +13,7 @@ async function syncFeed(env: Env, feedUrl: string): Promise<void> {
   }
 
   const seenSet = new Set(seen);
-  const newItems: FeedItem[] = [];
-  for (const item of feed.items) {
-    if (seenSet.has(item.id)) break;
-    newItems.push(item);
-  }
+  const newItems: FeedItem[] = feed.items.filter((item) => !seenSet.has(item.id));
   if (newItems.length === 0) return;
 
   const sent: string[] = [];
