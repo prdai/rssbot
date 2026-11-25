@@ -9,6 +9,15 @@ const escapeHtml = (value: string): string =>
 
 const stripHtml = (value: string): string => value.replaceAll(/<[^>]*>/g, "");
 
+const constrainImages = (html: string): string =>
+  html.replaceAll(/<img(\s[^>]*)?>/gi, (tag, attrs = "") => {
+    const existing = attrs.match(/\sstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/i);
+    const style = "max-width:100%;height:auto;";
+    if (existing === null) return `<img${attrs.replace(/\s*\/\s*$/, "")} style="${style}">`;
+    const base = (existing[1] ?? existing[2] ?? "").trim().replace(/;?$/, ";");
+    return tag.replace(existing[0], ` style="${base}${style}"`);
+  });
+
 const metaLine = (item: FeedItem): string => {
   const parts = [item.feedTitle, item.author, item.publishedAt].filter(
     (part): part is string => part !== null && part.length > 0,
@@ -22,10 +31,10 @@ export async function sendItemEmail(
   from: string,
   to: string,
 ): Promise<void> {
-  const content = item.contentHtml ?? "";
+  const content = constrainImages(item.contentHtml ?? "");
   const html = `<!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>img{max-width:100%!important;height:auto!important;}</style></head>
 <body style="margin:0;padding:24px;font-family:system-ui,-apple-system,sans-serif;line-height:1.6;color:#222;">
 <article style="max-width:640px;margin:0 auto;">
 <h1 style="font-size:24px;line-height:1.3;margin:0 0 8px;">${escapeHtml(item.title)}</h1>
