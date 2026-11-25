@@ -17,8 +17,6 @@ name, author, and published date above it. No digest and no LLM generation.
 4. Every unseen item is sent as its own email through the `EMAIL` binding. An
    item is marked seen only after its email is sent.
 
-`POST /` runs a sync manually.
-
 ## Configuration
 
 Non-secret config lives in `wrangler.jsonc` under `vars`.

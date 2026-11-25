@@ -19,8 +19,7 @@
     "wrangler": "^4.168.0"
   },
   "dependencies": {
-    "fast-xml-parser": "^5.3.2",
-    "hono": "4.10.3"
+    "fast-xml-parser": "^5.3.2"
   },
   "cloudflare": {
     "label": "RSS email forwarder",
