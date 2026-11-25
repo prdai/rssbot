@@ -19,4 +19,5 @@ export const FEEDS: string[] = [
   "https://developers.cloudflare.com/changelog/rss/application-security.xml",
   "https://kubernetes.io/feed.xml",
   "http://blog.golang.org/feed.atom",
+  "https://aws.amazon.com/blogs/developer/feed/",
 ];
