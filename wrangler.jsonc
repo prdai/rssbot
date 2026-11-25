@@ -21,6 +21,16 @@
       "destination_address": "go2ranuga@gmail.com",
     },
   ],
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["WorkerContainer"],
+    },
+    {
+      "tag": "v2",
+      "deleted_classes": ["WorkerContainer"],
+    },
+  ],
   "observability": {
     "enabled": true,
   },
