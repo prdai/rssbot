@@ -5,7 +5,6 @@ export const FEEDS: string[] = [
   "https://simonwillison.net/atom/everything/",
   "https://kubernetes.io/feed.xml",
   "http://blog.golang.org/feed.atom",
-  "https://developers.cloudflare.com/changelog/rss/index.xml",
   "https://blog.cloudflare.com/rss/",
   "https://aws.amazon.com/blogs/developer/feed/",
   "https://netflixtechblog.com/feed",
