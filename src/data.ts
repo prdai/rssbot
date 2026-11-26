@@ -17,4 +17,7 @@ export const FEEDS: string[] = [
   "https://github.blog/feed/",
   "https://devblogs.microsoft.com/feed/",
   "https://developers.googleblog.com/feeds/posts/default?alt=rss",
+  "https://slack.engineering/feed",
+  "https://v8.dev/blog.atom",
+  "https://huggingface.co/blog/feed.xml",
 ];
