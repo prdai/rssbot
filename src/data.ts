@@ -2,7 +2,6 @@ export const FEEDS: string[] = [
   "https://antfu.me/feed.xml",
   "https://overreacted.io/rss.xml",
   "https://jvns.ca/atom.xml",
-  "https://simonwillison.net/atom/everything/",
   "https://kubernetes.io/feed.xml",
   "http://blog.golang.org/feed.atom",
   "https://blog.cloudflare.com/rss/",
